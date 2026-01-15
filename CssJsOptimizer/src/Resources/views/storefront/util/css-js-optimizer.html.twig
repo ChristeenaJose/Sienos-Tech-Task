@@ -1,0 +1,50 @@
+{# ============================= #}
+{# Critical CSS inline (hybrid)  #}
+{# ============================= #}
+<style id="critical-css">
+{% if criticalCssOverride is defined and criticalCssOverride is not empty %}
+    {{ criticalCssOverride|raw }}
+{% elseif criticalCssFile is defined %}
+    {% include criticalCssFile %}
+{% endif %}
+</style>
+
+{# ============================= #}
+{# Async CSS loader              #}
+{# ============================= #}
+<script>
+(function() {
+    var links = document.querySelectorAll('link[rel="stylesheet"]');
+    links.forEach(function(link) {
+        var preload = document.createElement('link');
+        preload.rel = 'preload';
+        preload.as = 'style';
+        preload.href = link.href;
+        preload.onload = function() { this.rel = 'stylesheet'; };
+        document.head.appendChild(preload);
+        link.remove();
+    });
+})();
+</script>
+
+{# ============================= #}
+{# Tracking scripts delay loader #}
+{# ============================= #}
+{% if delayTracking is defined and delayTracking %}
+<script>
+(function() {
+    function loadDelayedScripts() {
+        document.querySelectorAll('script[data-delay-src]').forEach(function(el) {
+            var s = document.createElement('script');
+            s.src = el.getAttribute('data-delay-src');
+            s.async = true;
+            document.head.appendChild(s);
+            el.remove();
+        });
+    }
+    window.addEventListener('load', function() {
+        setTimeout(loadDelayedScripts, {{ trackingDelay|default(3) * 1000 }});
+    });
+})();
+</script>
+{% endif %}
